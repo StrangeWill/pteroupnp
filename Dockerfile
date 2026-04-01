@@ -15,4 +15,6 @@ RUN apt-get purge -y gcc && apt-get autoremove -y
 
 COPY main.py .
 
+ENV PYTHONUNBUFFERED=1
+
 CMD ["python", "main.py"]

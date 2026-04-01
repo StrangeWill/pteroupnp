@@ -42,9 +42,9 @@ def resolve_ip(fqdn: str) -> str:
     return socket.gethostbyname(fqdn)
 
 
-def find_current_node(nodes: list[dict], local_ip: str) -> dict | None:
+def find_current_node(nodes: list[dict], known_ips: set[str]) -> dict | None:
     for node in nodes:
-        if resolve_ip(node["fqdn"]) == local_ip:
+        if resolve_ip(node["fqdn"]) in known_ips:
             return node
     return None
 
@@ -76,13 +76,23 @@ def add_port_mapping(upnp: miniupnpc.UPnP, node_ip: str, port: int, proto: str, 
 def main() -> None:
     local_ip = get_local_ip()
     upnp = setup_upnp()
+    external_ip = upnp.externalipaddress()
+
+    known_ips = {local_ip, external_ip}
+    print(f"Known local IPs: {known_ips}\n")
 
     nodes = get_nodes()
-    node = find_current_node(nodes, local_ip)
+    print("Panel nodes:")
+    for n in nodes:
+        resolved = resolve_ip(n["fqdn"])
+        print(f"  {n['name']}: {n['fqdn']} -> {resolved}")
+    print()
+
+    node = find_current_node(nodes, known_ips)
 
     if node is None:
         raise RuntimeError(
-            f"Could not find a Pterodactyl node matching this machine's IP ({local_ip}). "
+            f"Could not find a Pterodactyl node matching any known IP ({known_ips}). "
             "Check that the node's FQDN resolves to this machine."
         )
 
