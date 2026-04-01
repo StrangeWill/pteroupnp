@@ -1,0 +1,9 @@
+services:
+  ptero-upnp:
+    build: .
+    network_mode: host
+    restart: on-failure
+    environment:
+      - PANEL_URL=http://localhost
+      - API_KEY=
+~
